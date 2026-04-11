@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description"
+        content="TikTok Virtual – an entertainment and virtual streaming demo application. For demonstration and fun only." />
+    <meta name="keywords" content="entertainment, virtual, streaming, demo, fun, hackathon" />
+    <meta name="author" content="TikTok Virtual Team" />
+    <meta name="robots" content="noindex, nofollow" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="rating" content="general" />
+    <meta property="og:title" content="TikTok Virtual – Entertainment Demo" />
+    <meta property="og:description" content="A fun virtual streaming demo app built for entertainment purposes only." />
+    <meta property="og:type" content="website" />
+    <title>TikTok Virtual – Entertainment Demo</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+        integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="css/portal.css" />
+    <!-- All portal styles inline – guarantees rendering regardless of external CSS loading -->
+    <style>
+        :root {
+            --bg: #0f1115;
+            --card: #161a21;
+            --text: #e8ecf2;
+            --muted: #8b93a6;
+            --accent: #5dd1ff;
+            --border: #232836;
+            --danger: #ff5c5c
+        }
+
+        * {
+            box-sizing: border-box
+        }
+
+        body {
+            margin: 0;
+            font-family: "TikTok Sans", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+            background: radial-gradient(circle at 20% 20%, rgba(93, 209, 255, .1), transparent 28%), radial-gradient(circle at 80% 0%, rgba(155, 123, 255, .12), transparent 35%), var(--bg);
+            color: var(--text);
+            min-height: 100vh
+        }
+
+        .k {
+            display: none !important
+        }
+
+        .login-screen {
+            min-height: 100vh;
+            display: grid;
+            place-items: center;
+            padding: 32px
+        }
+
+        .login-card {
+            width: 460px;
+            max-width: 100%;
+            background: rgba(22, 26, 33, .9);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 28px;
+            box-shadow: 0 24px 48px rgba(0, 0, 0, .35);
+            text-align: left
+        }
+
+        .login-card h1 {
+            margin: 0 0 8px
+        }
+
+        .login-card p {
+            margin: 0 0 16px;
+            color: var(--muted)
+        }
+
+        .login-card label {
+            display: block;
+            font-weight: 700;
+            margin: 12px 0 6px
+        }
+
+        .login-card input {
+            width: 100%;
+            padding: 12px 14px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            background: #0b0f16;
+            color: var(--text)
+        }
+
+        .login-card button[type="submit"] {
+            width: 100%;
+            margin-top: 12px;
+            border: 1px solid var(--border);
+            background: linear-gradient(135deg, rgba(93, 209, 255, .18), rgba(155, 123, 255, .18));
+            color: var(--text);
+            padding: 12px 16px;
+            border-radius: 12px;
+            font-weight: 700;
+            cursor: pointer
+        }
+
+        .login-error {
+            color: var(--danger);
+            margin-top: 10px
+        }
+
+        .login-attempts {
+            margin-top: 8px;
+            color: var(--muted)
+        }
+
+        .login-footnote {
+            margin-top: 14px;
+            font-size: 13px;
+            color: var(--muted)
+        }
+
+        .app-shell {
+            min-height: 100vh;
+            display: grid;
+            place-items: center;
+            padding: 32px
+        }
+
+        .app-card {
+            width: 520px;
+            max-width: 100%;
+            background: rgba(22, 26, 33, .9);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 28px;
+            box-shadow: 0 24px 48px rgba(0, 0, 0, .35);
+            text-align: center
+        }
+
+        .app-actions {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-top: 16px
+        }
+
+        .display-name-row {
+            margin-top: 14px;
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            justify-content: center;
+            flex-wrap: wrap
+        }
+
+        .display-name-input {
+            width: 280px;
+            max-width: 100%;
+            padding: 10px 12px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            background: #0b0f16;
+            color: var(--text)
+        }
+
+        .pill-button {
+            border: 1px solid var(--border);
+            background: linear-gradient(135deg, rgba(93, 209, 255, .18), rgba(155, 123, 255, .18));
+            color: var(--text);
+            padding: 10px 14px;
+            border-radius: 999px;
+            font-weight: 700;
+            cursor: pointer
+        }
+
+        .pill-button.secondary {
+            background: transparent
+        }
+
+        .lion-dl-bar {
+            margin-top: 18px;
+            display: none
+        }
+
+        .lion-dl-bar.active {
+            display: block
+        }
+
+        .lion-dl-label {
+            font-size: 12px;
+            color: var(--muted);
+            margin-bottom: 6px
+        }
+
+        .lion-dl-track {
+            width: 100%;
+            height: 6px;
+            background: #1c2029;
+            border-radius: 999px;
+            overflow: hidden
+        }
+
+        .lion-dl-fill {
+            width: 0%;
+            height: 100%;
+            background: linear-gradient(90deg, #5dd1ff, #9b7bff);
+            border-radius: 999px;
+            transition: width .3s ease
+        }
+
+        .lion-dl-done {
+            font-size: 12px;
+            color: #5dd1ff;
+            margin-top: 6px;
+            display: none
+        }
+
+        .admin-panel {
+            position: fixed;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            left: 0;
+            background: rgba(5, 7, 11, .7);
+            -webkit-backdrop-filter: blur(8px);
+            backdrop-filter: blur(8px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+            z-index: 2000
+        }
+
+        .admin-panel.active {
+            display: flex
+        }
+
+        .disclaimer-overlay {
+            position: fixed;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            left: 0;
+            z-index: 9999;
+            background: rgba(5, 7, 12, .92);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+            -webkit-backdrop-filter: blur(14px);
+            backdrop-filter: blur(14px)
+        }
+
+        .disclaimer-card {
+            width: 540px;
+            max-width: 100%;
+            background: linear-gradient(145deg, #161a24, #1a1f2b);
+            border: 1px solid rgba(93, 209, 255, .25);
+            border-radius: 24px;
+            padding: 36px 32px 28px;
+            box-shadow: 0 0 60px rgba(93, 209, 255, .08), 0 24px 64px rgba(0, 0, 0, .5);
+            text-align: center;
+            max-height: 90vh;
+            overflow-y: auto
+        }
+
+        .disclaimer-icon {
+            font-size: 48px;
+            margin-bottom: 8px
+        }
+
+        .disclaimer-title {
+            margin: 0 0 18px;
+            font-size: 26px;
+            font-weight: 800;
+            background: linear-gradient(135deg, #5dd1ff, #b97bff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text
+        }
+
+        .disclaimer-body {
+            text-align: left;
+            color: #8b93a6;
+            font-size: 14px;
+            line-height: 1.7
+        }
+
+        .disclaimer-body p {
+            margin: 0 0 12px
+        }
+
+        .disclaimer-body ul {
+            padding-left: 22px;
+            margin: 0 0 16px
+        }
+
+        .disclaimer-body li {
+            margin-bottom: 8px
+        }
+
+        .disclaimer-body strong {
+            color: #e8ecf2
+        }
+
+        .disclaimer-fine {
+            font-size: 12px;
+            color: #6b7385;
+            margin-top: 14px;
+            font-style: italic
+        }
+
+        .disclaimer-accept-btn {
+            width: 100%;
+            margin-top: 20px;
+            padding: 14px 20px;
+            border: none;
+            border-radius: 14px;
+            font-size: 16px;
+            font-weight: 800;
+            cursor: pointer;
+            color: #fff;
+            background: linear-gradient(135deg, #25d366, #128c7e);
+            box-shadow: 0 4px 20px rgba(37, 211, 102, .35)
+        }
+
+        .wa-banner {
+            position: relative;
+            width: 100%;
+            overflow: hidden;
+            background: linear-gradient(135deg, #0a1628, #0d1f1a 40%, #0a1628);
+            border-bottom: 2px solid rgba(37, 211, 102, .3);
+            padding: 18px 24px;
+            z-index: 100
+        }
+
+        .wa-banner-glow {
+            position: absolute;
+            top: -50%;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 600px;
+            height: 200px;
+            background: radial-gradient(ellipse, rgba(37, 211, 102, .15), transparent 70%);
+            pointer-events: none
+        }
+
+        .wa-banner-content {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px
+        }
+
+        .wa-banner-motto {
+            display: flex;
+            align-items: center;
+            gap: 10px
+        }
+
+        .wa-motto-text {
+            font-size: 26px;
+            font-weight: 900;
+            background: linear-gradient(135deg, #ffd700, #ffaa00, #ffd700);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            background-size: 200% auto
+        }
+
+        .wa-emoji {
+            font-size: 28px
+        }
+
+        .wa-banner-subtitle {
+            font-size: 13px;
+            color: #8b93a6;
+            letter-spacing: .03em
+        }
+
+        .wa-banner-contact {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            flex-wrap: wrap;
+            justify-content: center
+        }
+
+        .wa-phone {
+            color: #25d366;
+            font-size: 16px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 6px
+        }
+
+        .wa-msg-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 22px;
+            border-radius: 999px;
+            background: linear-gradient(135deg, #25d366, #128c7e);
+            color: #fff;
+            font-weight: 700;
+            font-size: 14px;
+            text-decoration: none;
+            box-shadow: 0 4px 18px rgba(37, 211, 102, .35)
+        }
+
+        .wa-banner-close {
+            position: absolute;
+            top: 10px;
+            right: 14px;
+            background: transparent;
+            border: none;
+            color: #8b93a6;
+            font-size: 22px;
+            cursor: pointer;
+            line-height: 1;
+            padding: 4px
+        }
+    </style>
+</head>
+
+<body>
+    <!-- ═══ DISCLAIMER POPUP ═══ -->
+    <div id="disclaimerOverlay" class="disclaimer-overlay">
+        <div class="disclaimer-card">
+            <div class="disclaimer-icon">⚠️</div>
+            <h2 class="disclaimer-title">Disclaimer</h2>
+            <div class="disclaimer-body">
+                <p>This application is provided <strong>strictly for entertainment purposes only</strong>.</p>
+                <ul>
+                    <li>No real monetary transactions are involved.</li>
+                    <li>Any resemblance to real financial instruments, trading platforms, or investment schemes is
+                        purely coincidental.</li>
+                    <li>The developers and operators assume <strong>no liability</strong> for any decisions made based
+                        on the content displayed within this application.</li>
+                    <li>By proceeding, you acknowledge that you are of legal age in your jurisdiction and agree to use
+                        this application responsibly.</li>
+                    <li>This platform does not guarantee any returns, profits, or financial outcomes.</li>
+                </ul>
+                <p class="disclaimer-fine">By clicking "I Agree" you confirm you have read, understood, and accepted the
+                    above terms and conditions.</p>
+            </div>
+            <button id="disclaimerAccept" class="disclaimer-accept-btn">I Agree &amp; Continue</button>
+        </div>
+    </div>
+
+    <!-- ═══ PROMO BANNER ═══ -->
+    <div id="whatsappBanner" class="wa-banner">
+        <div class="wa-banner-glow"></div>
+        <div class="wa-banner-content">
+            <div class="wa-banner-motto">
+                <span class="wa-emoji">🎉</span>
+                <span class="wa-motto-text">Virtual Streaming – Try It Now!</span>
+                <span class="wa-emoji">🚀</span>
+            </div>
+            <div class="wa-banner-subtitle">Premium entertainment experience · For fun &amp; demo only</div>
+            <div class="wa-banner-contact">
+                <span class="wa-phone"><i class="fa-brands fa-whatsapp"></i> Support: 9820989875</span>
+                <a href="https://wa.me/message/DLMIXYRGYXPHM1" target="_blank" rel="noopener" class="wa-msg-btn">
+                    <i class="fa-brands fa-whatsapp"></i> Chat with us on WhatsApp
+                </a>
+            </div>
+        </div>
+        <button id="closeBanner" class="wa-banner-close" title="Close">&times;</button>
+    </div>
+
+    <div id="loginScreen" class="login-screen k">
+        <div class="login-card">
+            <h1>Secure Access</h1>
+            <p>Enter your assigned credentials to unlock host/remote access.</p>
+            <form id="loginForm">
+                <label for="loginUsername">Username</label>
+                <input type="text" id="loginUsername" autocomplete="username" required />
+
+                <label for="loginPassword">Password</label>
+                <div style="position: relative; margin-bottom: 12px;">
+                    <input type="password" id="loginPassword" autocomplete="current-password" required
+                        style="padding-right: 45px;" />
+                    <button type="button" class="password-toggle" data-target="loginPassword" aria-label="Show password"
+                        style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: transparent; border: none; padding: 4px; cursor: pointer;">
+                        <i class="fa-regular fa-eye"></i>
+                    </button>
+                </div>
+
+                <button type="submit" id="loginButton">Log in</button>
+            </form>
+            <p id="loginError" class="login-error k"></p>
+            <div id="loginAttempts" class="login-attempts k">Attempts used: <span id="attemptValue">0</span>/5
+            </div>
+            <p class="login-footnote">1 account = up to 3 devices.</p>
+        </div>
+    </div>
+
+    <div id="appShell" class="app-shell">
+        <div class="app-card">
+            <h2>Welcome <span id="sessionUsername">User</span></h2>
+            <p id="timeLeftBadge" class="k"></p>
+            <div class="app-actions">
+                <button class="pill-button" id="openHost">Open Mode 1 (Host)</button>
+                <button class="pill-button secondary" id="openRemote">Open Mode 2 (Remote)</button>
+                <button class="pill-button secondary" id="logoutBtn" type="button">Logout</button>
+            </div>
+            <div class="display-name-row">
+                <input id="displayNameInput" class="display-name-input" type="text" value="Host"
+                    placeholder="Display name for cam capsule" />
+                <button class="pill-button secondary" id="saveDisplayName" type="button">Save Name</button>
+            </div>
+            <div id="lionDlBar" class="lion-dl-bar">
+                <div class="lion-dl-label" id="lionDlLabel">Downloading premium lion effect… <span
+                        id="lionDlPct">0</span>%</div>
+                <div class="lion-dl-track">
+                    <div class="lion-dl-fill" id="lionDlFill"></div>
+                </div>
+                <div class="lion-dl-done" id="lionDlDone">✓ Premium lion effect ready</div>
+            </div>
+        </div>
+    </div>
+
+    <div id="adminPanel" class="admin-panel" aria-hidden="true"> </div>
+
+    <!-- ═══ INLINE POPUP/BANNER JS (cross-browser, runs before portal.js) ═══ -->
+    <script>
+        (function () {
+            // Disclaimer popup – works on all browsers including Safari, Firefox, older Edge
+            function initDisclaimer() {
+                var overlay = document.getElementById('disclaimerOverlay');
+                var acceptBtn = document.getElementById('disclaimerAccept');
+                if (!overlay || !acceptBtn) return;
+
+                // Check if already accepted this session
+                var alreadyAccepted = false;
+                try { alreadyAccepted = sessionStorage.getItem('disclaimerAccepted') === '1'; } catch (e) { }
+                if (alreadyAccepted) {
+                    overlay.style.display = 'none';
+                    return;
+                }
+
+                // Use both onclick and addEventListener for max compat
+                function dismiss() {
+                    overlay.style.display = 'none';
+                    try { sessionStorage.setItem('disclaimerAccepted', '1'); } catch (e) { }
+                }
+                if (acceptBtn.addEventListener) {
+                    acceptBtn.addEventListener('click', dismiss, false);
+                } else if (acceptBtn.attachEvent) {
+                    acceptBtn.attachEvent('onclick', dismiss);
+                } else {
+                    acceptBtn.onclick = dismiss;
+                }
+            }
+
+            // Banner close
+            function initBannerClose() {
+                var banner = document.getElementById('whatsappBanner');
+                var closeBtn = document.getElementById('closeBanner');
+                if (!banner || !closeBtn) return;
+
+                function closeBanner() { banner.style.display = 'none'; }
+                if (closeBtn.addEventListener) {
+                    closeBtn.addEventListener('click', closeBanner, false);
+                } else if (closeBtn.attachEvent) {
+                    closeBtn.attachEvent('onclick', closeBanner);
+                } else {
+                    closeBtn.onclick = closeBanner;
+                }
+            }
+
+            // Run immediately (script is at bottom of body, DOM is ready)
+            initDisclaimer();
+            initBannerClose();
+        })();
+    </script>
+    <script defer src="js/portal.js"></script>
+</body>
+
+</html>

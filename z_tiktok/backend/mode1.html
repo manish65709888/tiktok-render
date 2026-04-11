@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Mode 1" />
+    <meta name="theme-color" content="#000000" />
+    <link rel="icon" type="image/png" href="image/tiktokicon.png" />
+    <link rel="apple-touch-icon" href="image/tiktokicon.png" />
+    <link rel="manifest" href="manifest-mode1.json" />
+    <title>Mode 1 – Host</title>
+    <link rel="stylesheet" href="css/mode1.css" />
+</head>
+
+<body>
+    <div id="hostLayout" class="host-layout">
+        <div id="camTools" class="cam-tools" aria-hidden="true">
+            <button id="camVrmPickBtn" type="button">Choose VRM Avatar</button>
+            <button id="camVrmClearBtn" type="button">Remove VRM Avatar</button>
+            <button id="camBgBtn" type="button">Choose Background Image</button>
+            <button id="camBgClearBtn" type="button">Remove Background</button>
+            <input id="camBgFile" type="file" accept="image/*,.gif" hidden />
+            <input id="camVrmFile" type="file" accept=".vrm" hidden />
+        </div>
+        <div id="videoWrap" class="video-wrap">
+            <div id="hostPill" class="seat-pill seat-pill-top host-pill">Host</div>
+            <div id="camNamePill" class="seat-pill seat-pill-bottom cam-name-pill no-capsule">Host</div>
+            <img id="camBg" class="cam-bg" alt="" />
+            <canvas id="camSegCanvas" class="cam-seg-canvas"></canvas>
+            <canvas id="camAiCanvas" class="cam-ai-canvas"></canvas>
+            <canvas id="camVrmCanvas" class="cam-vrm-canvas"></canvas>
+            <video id="camera" autoplay playsinline muted></video>
+            <div class="resize-handle" data-target="cam"></div>
+        </div>
+        <div id="roomPanel" class="room-panel">
+            <div id="roomGrid" class="room-grid"></div>
+            <div class="resize-handle" data-target="room"></div>
+        </div>
+        <div id="animationBox" class="animation-box">
+            <div id="giftOverlay" class="gift-overlay">
+                <video id="giftVideo" playsinline webkit-playsinline preload="auto" x-webkit-airplay="deny"></video>
+            </div>
+            <div class="resize-handle" data-target="animation"></div>
+        </div>
+    </div>
+    <div id="soundPrompt" class="sound-prompt hidden" aria-hidden="true">
+        <button id="soundPromptBtn" type="button">Tap to enable sound</button>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh@0.4/face_mesh.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation@0.1/selfie_segmentation.min.js"></script>
+    <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.161.0/build/three.module.js",
+        "three/examples/jsm/": "https://cdn.jsdelivr.net/npm/three@0.161.0/examples/jsm/"
+      }
+    }
+  </script>
+    <script type="module">
+        import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.161.0/build/three.module.js";
+        import { GLTFLoader } from "https://cdn.jsdelivr.net/npm/three@0.161.0/examples/jsm/loaders/GLTFLoader.js";
+        import { VRMUtils, VRMLoaderPlugin } from "https://cdn.jsdelivr.net/npm/@pixiv/three-vrm@2.0.6/lib/three-vrm.module.js";
+
+        const canvas = document.getElementById("camVrmCanvas");
+        const video = document.getElementById("camera");
+        if (!canvas || !video) {
+            window.VRMController = { enable: () => { }, resize: () => { }, load: () => { }, loadFile: () => { }, setPoseStrong: () => { }, setPoseAngle: () => { } };
+        } else {
+            const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: false });
+            const maxPixelRatio = 1.25;
+            renderer.setPixelRatio(Math.min(maxPixelRatio, window.devicePixelRatio || 1));
+            renderer.setClearColor(0x000000, 0);
+            const scene = new THREE.Scene();
+            const camera = new THREE.PerspectiveCamera(35, 1, 0.1, 100);
+            camera.position.set(0, 1.4, 2.2);
+
+            const light = new THREE.DirectionalLight(0xffffff, 1.2);
+            light.position.set(1, 2, 3);
+            scene.add(light);
+            scene.add(new THREE.AmbientLight(0xffffff, 0.6));
+
+            const loader = new GLTFLoader();
+            loader.register((parser) => new VRMLoaderPlugin(parser));
+            let currentVrm = null;
+            let currentModel = null;
+            let enabled = false;
+            let vrmReady = false;
+            let poseStrongOverride = null;
+            let poseAngleOverride = null;
+
+            function resize() {
+                const w = canvas.clientWidth || 1;
+                const h = canvas.clientHeight || 1;
+                renderer.setSize(w, h, false);
+                camera.aspect = w / h;
+                camera.updateProjectionMatrix();
+            }
+
+            function setBoneRotation(vrm, boneName, x, y, z) {
+                const bone = vrm.humanoid?.getNormalizedBoneNode(boneName);
+                if (!bone) return;
+                bone.rotation.x = x;
+                bone.rotation.y = y;
+                bone.rotation.z = z;
+            }
+
+            function applyIdlePoseFromUpperZ(vrm, upperZ) {
+                const baseUpper = 1.3;
+                const strongUpper = 2.2;
+                const t = Math.max(0, Math.min(1, (upperZ - baseUpper) / (strongUpper - baseUpper)));
+                const lowerX = 0.35 + (0.9 - 0.35) * t;
+                const lowerZ = 0.05 + (0.15 - 0.05) * t;
+                const handZ = 0.05 + (0.1 - 0.05) * t;
+                setBoneRotation(vrm, "leftUpperArm", 0, 0, upperZ);
+                setBoneRotation(vrm, "rightUpperArm", 0, 0, -upperZ);
+                setBoneRotation(vrm, "leftLowerArm", lowerX, 0, lowerZ);
+                setBoneRotation(vrm, "rightLowerArm", lowerX, 0, -lowerZ);
+                setBoneRotation(vrm, "leftHand", 0, 0, handZ);
+                setBoneRotation(vrm, "rightHand", 0, 0, -handZ);
+            }
+
+            function applyIdlePose(vrm, strong = false) {
+                // Arms slightly down and relaxed (stronger for some VRoid exports)
+                const upperZ = typeof poseAngleOverride === "number" ? poseAngleOverride : (strong ? 2.2 : 1.3);
+                applyIdlePoseFromUpperZ(vrm, upperZ);
+            }
+
+            function resolvePoseStrong(vrm) {
+                if (typeof poseStrongOverride === "boolean") return poseStrongOverride;
+                const vrmName = (vrm?.meta?.name || vrm?.meta?.title || "") + "";
+                return /AvatarSample|AvatarSample_V|AvatarSample_R|VRoid/i.test(vrmName);
+            }
+
+            function applyPoseToCurrent(strong) {
+                if (currentVrm) applyIdlePose(currentVrm, strong);
+            }
+
+            function loadVrm(url, revokeUrl = false) {
+                loader.load(
+                    url,
+                    (gltf) => {
+                        const vrm = gltf.userData.vrm;
+                        if (currentVrm) scene.remove(currentVrm.scene);
+                        if (currentModel) scene.remove(currentModel);
+                        currentVrm = null;
+                        currentModel = null;
+
+                        if (vrm) {
+                            VRMUtils.removeUnnecessaryVertices(gltf.scene);
+                            VRMUtils.removeUnnecessaryJoints(gltf.scene);
+                            currentVrm = vrm;
+                            VRMUtils.rotateVRM0(vrm);
+                            applyIdlePose(vrm, resolvePoseStrong(vrm));
+                            const box = new THREE.Box3().setFromObject(vrm.scene);
+                            const height = Math.max(0.001, box.max.y - box.min.y);
+                            const scale = (1.6 * 1.5) / height;
+                            vrm.scene.scale.setScalar(scale);
+                            const downOffset = 0.8;
+                            vrm.scene.position.y = -box.min.y * scale - downOffset;
+                            currentModel = vrm.scene;
+                            scene.add(vrm.scene);
+                        } else {
+                            // Fallback: render generic GLB (no VRM metadata)
+                            const box = new THREE.Box3().setFromObject(gltf.scene);
+                            const height = Math.max(0.001, box.max.y - box.min.y);
+                            const scale = (1.6 * 1.5) / height;
+                            gltf.scene.scale.setScalar(scale);
+                            const downOffset = 0.8;
+                            gltf.scene.position.y = -box.min.y * scale - downOffset;
+                            currentModel = gltf.scene;
+                            scene.add(gltf.scene);
+                            console.warn("Loaded GLB without VRM metadata. Facial tracking is disabled.");
+                        }
+
+                        vrmReady = true;
+                        if (enabled && video) video.style.opacity = "0";
+                        if (revokeUrl) URL.revokeObjectURL(url);
+                    },
+                    undefined,
+                    (err) => {
+                        console.error("Failed to load VRM:", err);
+                        vrmReady = false;
+                        if (revokeUrl) URL.revokeObjectURL(url);
+                    }
+                );
+            }
+
+            // Load the default VRM if available (HEAD check avoids noisy 404)
+            (async function loadDefaultVrm() {
+                try {
+                    const res = await fetch("vrm/vrm2.vrm", { method: "HEAD" });
+                    if (res.ok) {
+                        loadVrm("vrm/vrm2.vrm");
+                    } else {
+                        console.info("Default VRM not found (vrm/vrm2.vrm) — use 'Choose VRM Avatar' to load one.");
+                    }
+                } catch (e) {
+                    console.info("Could not check for default VRM:", e.message);
+                }
+            })();
+
+            // Face tracking (head rotation)
+            let headYaw = 0;
+            let headPitch = 0;
+            let headRoll = 0;
+            let mouthOpen = 0;
+            let blinkLeft = 0;
+            let blinkRight = 0;
+            let smile = 0;
+            let faceMesh = null;
+
+            function clamp01(val) {
+                return Math.max(0, Math.min(1, val));
+            }
+
+            function lerp(a, b, t) {
+                return a + (b - a) * t;
+            }
+
+            function dist(a, b) {
+                const dx = a.x - b.x;
+                const dy = a.y - b.y;
+                return Math.hypot(dx, dy);
+            }
+
+            function updateHeadFromLandmarks(landmarks) {
+                if (!landmarks || !landmarks.length) return;
+                const leftEye = landmarks[33];
+                const rightEye = landmarks[263];
+                const nose = landmarks[1];
+                const eyeMidX = (leftEye.x + rightEye.x) * 0.5;
+                const eyeMidY = (leftEye.y + rightEye.y) * 0.5;
+                headYaw = (nose.x - eyeMidX) * -3.0;
+                headPitch = (nose.y - eyeMidY) * 2.5;
+                headRoll = Math.atan2(rightEye.y - leftEye.y, rightEye.x - leftEye.x) * -1.0;
+
+                // Mouth open (inner lips)
+                const mouthTop = landmarks[13];
+                const mouthBottom = landmarks[14];
+                const mouthLeft = landmarks[61];
+                const mouthRight = landmarks[291];
+                const mouthOpenRaw = dist(mouthTop, mouthBottom) / Math.max(0.001, dist(mouthLeft, mouthRight));
+                const mouthOpenTarget = clamp01((mouthOpenRaw - 0.02) * 8.0);
+
+                // Smile (mouth width vs height)
+                const smileRaw = dist(mouthLeft, mouthRight) / Math.max(0.001, dist(mouthTop, mouthBottom));
+                const smileTarget = clamp01((smileRaw - 2.0) * 0.5);
+
+                // Eye blink
+                const leftEyeTop = landmarks[159];
+                const leftEyeBottom = landmarks[145];
+                const leftEyeOuter = landmarks[33];
+                const leftEyeInner = landmarks[133];
+                const rightEyeTop = landmarks[386];
+                const rightEyeBottom = landmarks[374];
+                const rightEyeOuter = landmarks[362];
+                const rightEyeInner = landmarks[263];
+
+                const leftEyeOpen = dist(leftEyeTop, leftEyeBottom) / Math.max(0.001, dist(leftEyeOuter, leftEyeInner));
+                const rightEyeOpen = dist(rightEyeTop, rightEyeBottom) / Math.max(0.001, dist(rightEyeOuter, rightEyeInner));
+                const leftBlinkTarget = clamp01(1.0 - (leftEyeOpen - 0.15) * 6.0);
+                const rightBlinkTarget = clamp01(1.0 - (rightEyeOpen - 0.15) * 6.0);
+
+                // Smooth values
+                mouthOpen = lerp(mouthOpen, mouthOpenTarget, 0.35);
+                smile = lerp(smile, smileTarget, 0.25);
+                blinkLeft = lerp(blinkLeft, leftBlinkTarget, 0.5);
+                blinkRight = lerp(blinkRight, rightBlinkTarget, 0.5);
+            }
+
+            function initFaceMesh() {
+                if (faceMesh || typeof FaceMesh === "undefined") return;
+                faceMesh = new FaceMesh({
+                    locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh@0.4/${file}`,
+                });
+                faceMesh.setOptions({
+                    maxNumFaces: 1,
+                    refineLandmarks: false,
+                    minDetectionConfidence: 0.5,
+                    minTrackingConfidence: 0.5,
+                });
+                faceMesh.onResults((results) => {
+                    if (results.multiFaceLandmarks && results.multiFaceLandmarks[0]) {
+                        updateHeadFromLandmarks(results.multiFaceLandmarks[0]);
+                    }
+                });
+            }
+
+            async function faceLoop() {
+                if (!enabled || !faceMesh) return;
+                if (video.readyState >= 2) {
+                    try { await faceMesh.send({ image: video }); } catch (e) { /* ignore */ }
+                }
+                requestAnimationFrame(faceLoop);
+            }
+
+            let lastRenderTime = 0;
+            const targetFrameMs = 33;
+            function render() {
+                requestAnimationFrame(render);
+                const now = performance.now();
+                if (now - lastRenderTime < targetFrameMs) return;
+                lastRenderTime = now;
+                if (!enabled || !currentModel) return;
+                if (currentVrm) {
+                    const head = currentVrm.humanoid?.getNormalizedBoneNode("head");
+                    if (head) {
+                        head.rotation.y = headYaw;
+                        head.rotation.x = headPitch;
+                        head.rotation.z = headRoll;
+                    }
+                    const expr = currentVrm.expressionManager;
+                    if (expr) {
+                        expr.setValue("aa", mouthOpen);
+                        expr.setValue("blinkLeft", blinkLeft);
+                        expr.setValue("blinkRight", blinkRight);
+                        expr.setValue("happy", smile);
+                    }
+                    currentVrm.update(1 / 60);
+                }
+                renderer.render(scene, camera);
+            }
+
+            render();
+
+            window.VRMController = {
+                enable(next) {
+                    enabled = !!next;
+                    canvas.style.display = enabled ? "block" : "none";
+                    if (video) video.style.opacity = enabled && vrmReady ? "0" : "1";
+                    if (enabled) {
+                        initFaceMesh();
+                        resize();
+                        faceLoop();
+                    }
+                },
+                load(url) {
+                    if (!url) return;
+                    loadVrm(url, false);
+                },
+                loadFile(file) {
+                    if (!file) return;
+                    const url = URL.createObjectURL(file);
+                    loadVrm(url, true);
+                },
+                setPoseStrong(next) {
+                    poseAngleOverride = null;
+                    poseStrongOverride = typeof next === "boolean" ? next : null;
+                    applyPoseToCurrent(resolvePoseStrong(currentVrm));
+                },
+                setPoseAngle(next) {
+                    const asNumber = Number(next);
+                    if (!Number.isFinite(asNumber)) {
+                        poseAngleOverride = null;
+                    } else {
+                        poseAngleOverride = (asNumber * Math.PI) / 180;
+                    }
+                    applyPoseToCurrent(resolvePoseStrong(currentVrm));
+                },
+                resize,
+            };
+
+            // Default VRM enabled
+            window.VRMController.enable(true);
+
+            window.addEventListener("resize", resize);
+            resize();
+        }
+    </script>
+
+    <script defer src="js/mode1.js"></script>
+</body>
+
+</html>
+

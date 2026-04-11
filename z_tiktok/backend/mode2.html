@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Mode 2" />
+    <meta name="theme-color" content="#000000" />
+    <link rel="icon" type="image/png" href="image/tiktokicon.png" />
+    <link rel="apple-touch-icon" href="image/tiktokicon.png" />
+    <link rel="manifest" href="manifest.json" />
+    <link rel="stylesheet" href="css/mode2.css" />
+    <title>Mode 2 – Remote</title>
+</head>
+
+<body>
+    <div class="card">
+        <h1>Remote Control</h1>
+        <p>Send commands to the host tab on the same origin.</p>
+        <div class="actions">
+            <button id="remoteOpen">Open 8-seat room</button>
+            <button id="remoteStartCam">Start host camera</button>
+            <button id="toggleEditMove" class="secondary">Edit Move: Off</button>
+            <button id="saveLayout" class="secondary">Save Layout</button>
+            <button id="resetLayout" class="secondary">Reset Layout</button>
+            <button id="openHost" class="secondary">Open host tab</button>
+        </div>
+
+        <div class="panel" id="stylePanel">
+            <div class="panel-header">
+                <h2 style="margin:0;font-size:16px;">Edit 8-room style</h2>
+                <button id="toggleStyle" class="secondary icon-btn" aria-label="Toggle 8-room style"
+                    title="Toggle 8-room style">⚙️ ▼</button>
+            </div>
+            <div class="panel-body collapsible-body" id="styleBody" data-collapsed="true"
+                style="max-height:70vh;overflow-y:auto;">
+                <div class="field">
+                    <label for="heightInput">Seat height (px)</label>
+                    <div class="inline">
+                        <input id="heightInput" type="range" min="80" max="220" value="101" />
+                        <input id="heightValue" class="num-input" type="number" min="80" max="220" value="101" />
+                    </div>
+                </div>
+                <div class="field">
+                    <label for="widthInput">Seat min width (px)</label>
+                    <div class="inline">
+                        <input id="widthInput" type="range" min="0" max="280" value="0" />
+                        <input id="widthValue" class="num-input" type="number" min="0" max="280" value="0" />
+                    </div>
+                </div>
+                <div class="field">
+                    <label for="gapInput">Gap between boxes (px)</label>
+                    <div class="inline">
+                        <input id="gapInput" type="range" min="0" max="32" value="5" />
+                        <input id="gapValue" class="num-input" type="number" min="0" max="32" value="5" />
+                    </div>
+                </div>
+                <div class="field">
+                    <label>Background colors</label>
+                    <div class="inline">
+                        <input id="color1" type="color" value="#14171c" aria-label="Base color" />
+                        <input id="color2" type="color" value="#1f2430" aria-label="Contrast color" />
+                    </div>
+                </div>
+                <div class="field">
+                    <label for="blendInput">Contrast mix (second color strength)</label>
+                    <div class="inline">
+                        <input id="blendInput" type="range" min="0" max="100" value="50" />
+                        <input id="blendValue" class="num-input" type="number" min="0" max="100" value="50" />
+                    </div>
+                </div>
+                <div class="field">
+                    <label for="plusSizeInput">Plus size (px)</label>
+                    <div class="inline">
+                        <input id="plusSizeInput" type="range" min="16" max="72" value="36" />
+                        <input id="plusSizeValue" class="num-input" type="number" min="16" max="72" value="36" />
+                    </div>
+                </div>
+                <div class="field">
+                    <label for="labelSizeInput">Request size (px)</label>
+                    <div class="inline">
+                        <input id="labelSizeInput" type="range" min="10" max="28" value="14" />
+                        <input id="labelSizeValue" class="num-input" type="number" min="10" max="28" value="14" />
+                    </div>
+                </div>
+                <div class="field">
+                    <label for="requestStyleSelect">Request text style</label>
+                    <select id="requestStyleSelect" class="num-input" style="width:100%;">
+                        <option value="regular">Regular</option>
+                        <option value="medium">Medium</option>
+                        <option value="semibold">SemiBold</option>
+                        <option value="bold">Bold</option>
+                        <option value="condensed">Condensed</option>
+                        <option value="expanded">Expanded</option>
+                    </select>
+                </div>
+                <div class="field">
+                    <label for="pointsFormatSelect">Seat points format</label>
+                    <select id="pointsFormatSelect" class="num-input" style="width:100%;">
+                        <option value="compact" selected>K/M</option>
+                        <option value="full">Full number</option>
+                    </select>
+                </div>
+                <div class="field">
+                    <label for="roomWidthInput">Room width (px)</label>
+                    <div class="inline">
+                        <input id="roomWidthInput" type="range" min="50" max="1600" value="215" />
+                        <input id="roomWidthValue" class="num-input" type="number" min="50" max="1600" value="215" />
+                    </div>
+                </div>
+                <div class="field">
+                    <label for="roomHeightInput">Room height (px)</label>
+                    <div class="inline">
+                        <input id="roomHeightInput" type="range" min="50" max="1200" value="423" />
+                        <input id="roomHeightValue" class="num-input" type="number" min="50" max="1200" value="423" />
+                    </div>
+                </div>
+                <div class="field">
+                    <label for="roomRadiusInput">8-seat border radius (px)</label>
+                    <div class="inline">
+                        <input id="roomRadiusInput" type="range" min="0" max="60" value="10" />
+                        <input id="roomRadiusValue" class="num-input" type="number" min="0" max="60" value="10" />
+                    </div>
+                </div>
+                <div class="field">
+                    <label for="roomXInput">Room offset X (px)</label>
+                    <div class="inline">
+                        <input id="roomXInput" type="range" min="-1000" max="1000" value="215" />
+                        <input id="roomXValue" class="num-input" type="number" min="-1000" max="1000" value="215" />
+                    </div>
+                </div>
+                <div class="field">
+                    <label for="roomYInput">Room offset Y (px)</label>
+                    <div class="inline">
+                        <input id="roomYInput" type="range" min="-1000" max="1000" value="165" />
+                        <input id="roomYValue" class="num-input" type="number" min="-1000" max="1000" value="165" />
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="panel" id="camPanel">
+            <div class="panel-header">
+                <h2 style="margin:0;font-size:16px;">Edit Cam</h2>
+                <button id="toggleCam" class="secondary icon-btn" aria-label="Toggle cam settings"
+                    title="Toggle cam settings">📷 ▼</button>
+            </div>
+            <div class="panel-body collapsible-body" id="camBody" data-collapsed="true"
+                style="max-height:70vh;overflow-y:auto;">
+                <div class="field">
+                    <label for="camWidthInput">Cam width (px)</label>
+                    <div class="inline">
+                        <input id="camWidthInput" type="range" min="50" max="1600" value="212" />
+                        <input id="camWidthValue" class="num-input" type="number" min="50" max="1600" value="212" />
+                    </div>
+                </div>
+                <div class="field">
+                    <label for="camHeightInput">Cam height (px)</label>
+                    <div class="inline">
+                        <input id="camHeightInput" type="range" min="50" max="1200" value="420" />
+                        <input id="camHeightValue" class="num-input" type="number" min="50" max="1200" value="420" />
+                    </div>
+                </div>
+                <div class="field">
+                    <label for="camRadiusInput">Cam border radius (px)</label>
+                    <div class="inline">
+                        <input id="camRadiusInput" type="range" min="0" max="60" value="10" />
+                        <input id="camRadiusValue" class="num-input" type="number" min="0" max="60" value="10" />
+                    </div>
+                </div>
+                <div class="field">
+                    <label for="camXInput">Cam offset X (px)</label>
+                    <div class="inline">
+                        <input id="camXInput" type="range" min="-1000" max="1000" value="0" />
+                        <input id="camXValue" class="num-input" type="number" min="-1000" max="1000" value="0" />
+                    </div>
+                </div>
+                <div class="field">
+                    <label for="camYInput">Cam offset Y (px)</label>
+                    <div class="inline">
+                        <input id="camYInput" type="range" min="-1000" max="1000" value="0" />
+                        <input id="camYValue" class="num-input" type="number" min="-1000" max="1000" value="0" />
+                    </div>
+                </div>
+                <div class="field" style="margin-top:8px;">
+                    <label>Closed room cam</label>
+                    <div class="inline">
+                        <input id="closedCamWidthInput" type="range" min="50" max="2000" value="430" />
+                        <input id="closedCamWidthValue" class="num-input" type="number" min="50" max="2000"
+                            value="430" />
+                    </div>
+                    <div class="inline" style="margin-top:6px;">
+                        <input id="closedCamHeightInput" type="range" min="50" max="2000" value="615" />
+                        <input id="closedCamHeightValue" class="num-input" type="number" min="50" max="2000"
+                            value="615" />
+                    </div>
+                    <div class="inline" style="margin-top:6px;">
+                        <input id="closedCamXInput" type="range" min="-1500" max="1500" value="0" />
+                        <input id="closedCamXValue" class="num-input" type="number" min="-1500" max="1500" value="0" />
+                    </div>
+                    <div class="inline" style="margin-top:6px;">
+                        <input id="closedCamYInput" type="range" min="-1500" max="1500" value="165" />
+                        <input id="closedCamYValue" class="num-input" type="number" min="-1500" max="1500"
+                            value="165" />
+                    </div>
+                </div>
+                <div class="field">
+                    <label>Camera</label>
+                    <button id="toggleCamFacing" class="secondary" type="button" style="padding:8px 10px;">Switch
+                        front/back</button>
+                </div>
+                <div class="field">
+                    <label>Cam visibility</label>
+                    <button id="toggleCamVisible" class="secondary" type="button" style="padding:8px 10px;">Hide
+                        Cam</button>
+                </div>
+                <div class="field">
+                    <label>Host text</label>
+                    <button id="toggleHostText" class="secondary" type="button" style="padding:8px 10px;">Hide Host
+                        Text</button>
+                </div>
+                <div class="field">
+                    <label for="camNameInput">Cam name text (bottom-left)</label>
+                    <div class="inline">
+                        <input id="camNameInput" type="text" value="Host" placeholder="Enter cam name"
+                            style="flex:1;min-width:0;" />
+                        <button id="applyCamName" class="secondary" type="button"
+                            style="padding:8px 10px;">Apply</button>
+                    </div>
+                </div>
+                <div class="field">
+                    <label>Cam name visibility</label>
+                    <button id="toggleCamNameText" class="secondary" type="button" style="padding:8px 10px;">Hide Cam
+                        Name</button>
+                </div>
+                <div class="field">
+                    <label>Cam name capsule</label>
+                    <button id="toggleCamNameCapsule" class="secondary" type="button" style="padding:8px 10px;">Show
+                        Name Capsule</button>
+                </div>
+                <div class="field">
+                    <label>Cam tools on host</label>
+                    <button id="toggleCamTools" class="secondary" type="button" style="padding:8px 10px;">Show/Hide Cam
+                        Tools</button>
+                </div>
+                <div class="field">
+                    <label>VRM avatar</label>
+                    <button id="setDefaultVrm" class="secondary" type="button" style="padding:8px 10px;">Default
+                        VRM</button>
+                    <div class="inline" style="margin-top:8px;flex-wrap:wrap;gap:8px;">
+                        <button id="setVrm1" class="secondary" type="button" style="padding:8px 10px;">VRM 1</button>
+                        <button id="setVrm2" class="secondary" type="button" style="padding:8px 10px;">VRM 2</button>
+                        <button id="setVrmTest" class="secondary" type="button" style="padding:8px 10px;">Test
+                            VRM</button>
+                    </div>
+                    <div class="field" style="margin-top:10px;">
+                        <label for="vrmPoseAngleInput">Custom hand angle</label>
+                        <div class="inline">
+                            <input id="vrmPoseAngleInput" type="range" min="0" max="360" value="100" />
+                            <input id="vrmPoseAngleValue" class="num-input" type="number" min="0" max="360"
+                                value="100" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="panel" id="animationPanel">
+            <div class="panel-header" style="gap:10px;">
+                <h2 style="margin:0;font-size:16px;">Animation Box</h2>
+                <button id="toggleAnimationBody" class="secondary icon-btn" aria-label="Toggle animation box settings"
+                    title="Toggle animation box settings">⚙️ ▼</button>
+            </div>
+            <div class="panel-body collapsible-body" id="animationBody" data-collapsed="true"
+                style="max-height:70vh;overflow-y:auto;">
+                <div class="field">
+                    <label for="animationWidthInput">Animation width (px)</label>
+                    <div class="inline">
+                        <input id="animationWidthInput" type="range" min="200" max="1600" value="700" />
+                        <input id="animationWidthValue" class="num-input" type="number" min="200" max="1600"
+                            value="700" />
+                    </div>
+                </div>
+                <div class="field">
+                    <label for="animationHeightInput">Animation height (px)</label>
+                    <div class="inline">
+                        <input id="animationHeightInput" type="range" min="150" max="1200" value="400" />
+                        <input id="animationHeightValue" class="num-input" type="number" min="150" max="1200"
+                            value="400" />
+                    </div>
+                </div>
+                <div class="field">
+                    <label for="animationXInput">Animation offset X (px)</label>
+                    <div class="inline">
+                        <input id="animationXInput" type="range" min="-1000" max="1000" value="350" />
+                        <input id="animationXValue" class="num-input" type="number" min="-1000" max="1000"
+                            value="350" />
+                    </div>
+                </div>
+                <div class="field">
+                    <label for="animationYInput">Animation offset Y (px)</label>
+                    <div class="inline">
+                        <input id="animationYInput" type="range" min="-1000" max="1000" value="350" />
+                        <input id="animationYValue" class="num-input" type="number" min="-1000" max="1000"
+                            value="350" />
+                    </div>
+                </div>
+                <button id="toggleAnimationBox" class="secondary" style="padding:8px 10px;">Show Border</button>
+            </div>
+        </div>
+
+        <div class="panel" id="seatsPanel">
+            <div class="panel-header" style="gap:10px;">
+                <h2 style="margin:0;font-size:16px;">8-seat room</h2>
+                <span id="roomStatus" style="color:var(--muted);font-size:13px;">Closed</span>
+                <button id="toggleSeats" class="secondary" style="padding:6px 10px;margin-left:auto;">Hide</button>
+            </div>
+            <div id="previewGrid" class="preview-grid"></div>
+        </div>
+    </div>
+    <script defer src="js/mode2.js"></script>
+</body>
+
+</html>

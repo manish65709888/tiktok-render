@@ -1,0 +1,65 @@
+### TikTok Live Backend API
+### Base URL — change to your deployed host if not running locally
+@host = https://tiktok-app-4ahgj.ondigitalocean.app
+
+
+### ═══════════════════════════════════════════════════════════════════════════
+### AUTH — Login (cookie-based, for browser use)
+### ═══════════════════════════════════════════════════════════════════════════
+
+### Login as admin
+# @name login
+POST {{host}}/api/auth/login
+Content-Type: application/json
+
+{
+  "username": "banana",
+  "password": "almost-machine-actress"
+}
+
+### Check auth status (needs session cookie from login)
+GET {{host}}/api/auth/status
+
+### Logout
+POST {{host}}/api/auth/logout
+
+
+### ═══════════════════════════════════════════════════════════════════════════
+### API TOKENS — Universal auth (no cookies needed)
+### ═══════════════════════════════════════════════════════════════════════════
+
+### Create an API token (admin only — login first, then use cookie)
+### The response will return the raw token. Copy it to @token below.
+# @name createToken
+POST {{host}}/api/admin/tokens
+Content-Type: application/json
+X-CSRF-Token: {{login.response.body.csrfToken}}
+Cookie: session_id={{login.response.headers.Set-Cookie}}
+
+{
+  "username": "banana",
+  "name": "shared-api-token",
+  "expireDays": 30
+}
+
+### ─── Paste your API token here ──────────────────────────────────────────
+@token = wobKh3kzdsQ-EPtsd8zdG_HVVJmZ5W30QDyOv0KqCthGFAZZ0zvvMiuDPDR1RrDt
+
+
+### List all API tokens (admin)
+GET {{host}}/api/admin/tokens
+Authorization: Bearer {{token}}
+
+### Revoke a token (admin) — replace TOKEN_ID
+# DELETE {{host}}/api/admin/tokens/TOKEN_ID
+# Authorization: Bearer {{token}}
+
+
+### ═══════════════════════════════════════════════════════════════════════════
+### TIKTOK — Profile lookup (auth required)
+### ═══════════════════════════════════════════════════════════════════════════
+
+### Get TikTok profile by handle
+GET {{host}}/api/tiktok/profile/@tiktok
+Authorization: Bearer {{token}}
+
