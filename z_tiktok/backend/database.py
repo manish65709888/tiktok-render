@@ -10,7 +10,22 @@ connect_args = {}
 if settings.DATABASE_URL.startswith("sqlite"):
     connect_args["check_same_thread"] = False
 
-engine = create_engine(settings.DATABASE_URL, connect_args=connect_args)
+is_postgres = settings.DATABASE_URL.startswith("postgresql") or settings.DATABASE_URL.startswith("postgres")
+
+engine = create_engine(
+    settings.DATABASE_URL,
+    connect_args=connect_args,
+    **(
+        {
+            "pool_pre_ping": True,
+            "pool_recycle": 300,
+            "pool_size": 5,
+            "max_overflow": 2,
+        }
+        if is_postgres
+        else {}
+    ),
+)
 
 # Enable WAL mode and foreign keys for SQLite
 if settings.DATABASE_URL.startswith("sqlite"):
