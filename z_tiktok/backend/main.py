@@ -30,9 +30,6 @@ mimetypes.add_type("model/gltf+json", ".gltf")
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Create all tables on startup
-Base.metadata.create_all(bind=engine)
-
 app = FastAPI(
     title="TikTok Live Backend",
     version="1.0.0",
@@ -194,12 +191,16 @@ def serve_js(filename: str):
 @app.on_event("startup")
 def _seed_admin():
     from datetime import datetime, timedelta
-
     from passlib.context import CryptContext
     from sqlalchemy.orm import Session
-
     from database import SessionLocal
     from models import ApiToken, User
+
+    try:
+        Base.metadata.create_all(bind=engine)
+    except Exception as exc:
+        logger.error("DB init failed: %s", exc)
+        return
 
     pwd_ctx = CryptContext(schemes=["bcrypt"], deprecated="auto")
     db: Session = SessionLocal()
@@ -210,7 +211,7 @@ def _seed_admin():
                 username=settings.ADMIN_USERNAME,
                 password_hash=pwd_ctx.hash(settings.ADMIN_PASSWORD),
                 role="admin",
-                expires_at=datetime.now() + timedelta(days=365 * 10),  # 10 years
+                expires_at=datetime.now() + timedelta(days=365 * 10),
             )
             db.add(admin)
             db.commit()
@@ -218,13 +219,8 @@ def _seed_admin():
         else:
             logger.info("Admin user '%s' already exists.", settings.ADMIN_USERNAME)
 
-        # Seed permanent admin API token from env
         if settings.ADMIN_API_TOKEN:
-            existing = (
-                db.query(ApiToken)
-                .filter(ApiToken.token == settings.ADMIN_API_TOKEN)
-                .first()
-            )
+            existing = db.query(ApiToken).filter(ApiToken.token == settings.ADMIN_API_TOKEN).first()
             if not existing:
                 token = ApiToken(
                     token=settings.ADMIN_API_TOKEN,
@@ -235,8 +231,8 @@ def _seed_admin():
                 db.add(token)
                 db.commit()
                 logger.info("Admin API token seeded.")
-            else:
-                logger.info("Admin API token already exists.")
+    except Exception as exc:
+        logger.error("Admin seed failed: %s", exc)
     finally:
         db.close()
 
