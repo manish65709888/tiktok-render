@@ -20,7 +20,7 @@ elif _db_url.startswith("postgresql://"):
     _db_url = _db_url.replace("postgresql://", "postgresql+psycopg2://", 1)
 
 if is_postgres:
-    connect_args["sslmode"] = "require"
+    connect_args["sslmode"] = "disable"
     connect_args["connect_timeout"] = 10
 
 engine = create_engine(
