@@ -12,15 +12,27 @@ if settings.DATABASE_URL.startswith("sqlite"):
 
 is_postgres = settings.DATABASE_URL.startswith("postgresql") or settings.DATABASE_URL.startswith("postgres")
 
+# Render provides DATABASE_URL with "postgres://" scheme; SQLAlchemy 2.x requires "postgresql+psycopg2://"
+_db_url = settings.DATABASE_URL
+if _db_url.startswith("postgres://"):
+    _db_url = _db_url.replace("postgres://", "postgresql+psycopg2://", 1)
+elif _db_url.startswith("postgresql://"):
+    _db_url = _db_url.replace("postgresql://", "postgresql+psycopg2://", 1)
+
+if is_postgres:
+    connect_args["sslmode"] = "require"
+    connect_args["connect_timeout"] = 10
+
 engine = create_engine(
-    settings.DATABASE_URL,
+    _db_url,
     connect_args=connect_args,
     **(
         {
             "pool_pre_ping": True,
-            "pool_recycle": 300,
-            "pool_size": 5,
-            "max_overflow": 2,
+            "pool_recycle": 280,
+            "pool_size": 3,
+            "max_overflow": 1,
+            "pool_timeout": 30,
         }
         if is_postgres
         else {}
