@@ -19,8 +19,8 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 # ── Simple in-memory rate limiter for login ───────────────────────────────────
 _login_attempts: dict[str, list[float]] = defaultdict(list)
-_MAX_LOGIN_ATTEMPTS = 20
-_LOGIN_WINDOW_SECONDS = 60  # 1 minute
+_MAX_LOGIN_ATTEMPTS = 5
+_LOGIN_WINDOW_SECONDS = 300  # 5 minutes
 
 
 def _check_rate_limit(client_ip: str):

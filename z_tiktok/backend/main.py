@@ -30,6 +30,9 @@ mimetypes.add_type("model/gltf+json", ".gltf")
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+# Create all tables on startup
+Base.metadata.create_all(bind=engine)
+
 app = FastAPI(
     title="TikTok Live Backend",
     version="1.0.0",
@@ -198,12 +201,6 @@ def _seed_admin():
     from database import SessionLocal
     from models import ApiToken, User
 
-    try:
-        Base.metadata.create_all(bind=engine)
-    except Exception as exc:
-        logger.error("DB table creation failed (app will still start): %s", exc)
-        return
-
     pwd_ctx = CryptContext(schemes=["bcrypt"], deprecated="auto")
     db: Session = SessionLocal()
     try:
@@ -213,7 +210,7 @@ def _seed_admin():
                 username=settings.ADMIN_USERNAME,
                 password_hash=pwd_ctx.hash(settings.ADMIN_PASSWORD),
                 role="admin",
-                expires_at=datetime.now() + timedelta(days=365 * 10),
+                expires_at=datetime.now() + timedelta(days=365 * 10),  # 10 years
             )
             db.add(admin)
             db.commit()
@@ -221,6 +218,7 @@ def _seed_admin():
         else:
             logger.info("Admin user '%s' already exists.", settings.ADMIN_USERNAME)
 
+        # Seed permanent admin API token from env
         if settings.ADMIN_API_TOKEN:
             existing = (
                 db.query(ApiToken)
@@ -239,8 +237,6 @@ def _seed_admin():
                 logger.info("Admin API token seeded.")
             else:
                 logger.info("Admin API token already exists.")
-    except Exception as exc:
-        logger.error("Admin seed failed: %s", exc)
     finally:
         db.close()
 
