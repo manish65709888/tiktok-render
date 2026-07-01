@@ -6,7 +6,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
-    DATABASE_URL: str = "postgresql://tiktokdatabase_user:2HKmQ85bfpERpATXES4syDP5946LgnTA@dpg-d7cv3lt8nd3s73attfsg-a.oregon-postgres.render.com/tiktokdatabase"
+    DATABASE_URL: str = "postgresql://tiktokdb2_user:4JyTSwS1gxcwPSzt6K1STJm3vasnQ9hq@dpg-d92c4r4vikkc7386p3n0-a.oregon-postgres.render.com/tiktokdb2"
     SECRET_KEY: str = "njdfhju99-sdfhj$-asjdfnj#lnksdf008"
     SESSION_EXPIRE_HOURS: int = 24
     COOKIE_SECURE: bool = False
